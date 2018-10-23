@@ -8,3 +8,12 @@ The following Python packages are used by this code:
 [numpy](http://www.numpy.org/),
 [pickle](https://docs.python.org/3/library/pickle.html), 
 [scikit-learn](http://scikit-learn.org/stable/)
+
+## Repo Contents
+
+
+## How to Use
+
+
+
+## Acknowledgment and Attribution
