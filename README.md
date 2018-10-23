@@ -5,5 +5,6 @@
 
 The following Python packages are used by this code:
 [astropy](http://www.astropy.org/), [matplotlib](https://matplotlib.org/), 
+[numpy](http://www.numpy.org/),
 [pickle](https://docs.python.org/3/library/pickle.html), 
 [scikit-learn](http://scikit-learn.org/stable/)
