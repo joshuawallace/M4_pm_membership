@@ -87,9 +87,18 @@ def read_model_in_and_use(model_filename,proper_motions):
     model_filename - the name for the output pickle file, which stores
          the fitted model
     proper_motions - list/array of proper motions to be fed into the model,
-         of format ()
+         of format [ [pm_ra_1, pm_dec_1], [pm_ra_2, pm_dec_2], ...]
     """
-    pass
+
+    # Read in 
+    with open(model_filename,"rb") as f:
+        fitted_model = pickle.load(f)
+    
+    # Output the membership probability from the proper motions
+    prob = fitted_model.predict_proba(proper_motions)
+
+    # And return just the first component's membership probability
+    return np.array([item[0] for item in prob])
 
 
 if __name__ == "__main__":
@@ -106,3 +115,16 @@ if __name__ == "__main__":
 
     # Next, read in the catalog and fit membership model
     fitted_model = read_catalog_in_and_fit(input_filename, output_filename)
+
+    # We can use the fitted_model directly:
+    sample_proper_motions = [ [-12.5,-19],
+                              [-3,-4],
+                              [-13,-20],
+                              [-15,-8],
+                              [100,100]]
+    probability_output = fitted_model.predict_proba(sample_proper_motions)
+    print([item[0] for item in probability_output]) # Just the first component
+
+    # Or we can use the function above:
+    function_probability_output = read_model_in_and_use(output_filename,sample_proper_motions)
+    print(function_probability_output)
