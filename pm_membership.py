@@ -55,7 +55,7 @@ def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.3,
          number generator for consistency across runs.  Changing this value
          should have little to no effect on the final fit.
 
-    Returns the fitted model
+    Returns the fitted model and the proper motions
     """
 
     # Read in the catalog
@@ -79,7 +79,8 @@ def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.3,
     # Dump the fitted model to a pickle file, and also return it
     with open(output_filename,"wb") as f:
         pickle.dump(gm_model,f)
-    return gm_model
+    return (gm_model, (catalog_data['pmra'][pm_mask],
+                       catalog_data['pmdec'][pm_mask]))
 
 
 def read_model_in_and_use(model_filename,proper_motions):
@@ -101,6 +102,32 @@ def read_model_in_and_use(model_filename,proper_motions):
     return np.array([item[0] for item in prob])
 
 
+def plot_up(proper_motions,membership_probabilities,
+            plot_filename="gmm_fit.png"):
+    """
+    proper_motions - the proper motions [pm_ra_list, pm_dec_list]
+    membership_probabilities - the membership probabilities associated
+         with the proper motions above
+    plot_filename - name of the file for the output plot
+    """
+    
+    # Plot up the points and make colorbar
+    sc = plt.scatter(proper_motions[0],proper_motions[1],
+                     c=membership_probabilities,cmap='brg',
+                     s=1,alpha=.6)
+    cbar = plt.colorbar(sc,label='Star cluster membership probability')
+
+    # Add labels and save
+    plt.xlabel("Proper motion in RA (mas/yr)")
+    plt.ylabel("Proper motion in dec (mas/yr)")
+    plt.xlim(-22,10)
+    plt.ylim(-27,5)
+    plt.tight_layout()
+    plt.savefig(plot_filename,dpi=300)
+    plt.close()
+    
+
+
 if __name__ == "__main__":
     # First, read in the desired input and output filenames
     if len(sys.argv) != 3:
@@ -114,17 +141,26 @@ if __name__ == "__main__":
 
 
     # Next, read in the catalog and fit membership model
-    fitted_model = read_catalog_in_and_fit(input_filename, output_filename)
+    fitted_model, proper_motions = read_catalog_in_and_fit(input_filename, 
+                                                           output_filename)
 
     # We can use the fitted_model directly:
     sample_proper_motions = [ [-12.5,-19],
                               [-3,-4],
                               [-13,-20],
-                              [-15,-8],
+                              [-10,-20],
                               [100,100]]
     probability_output = fitted_model.predict_proba(sample_proper_motions)
     print([item[0] for item in probability_output]) # Just the first component
 
     # Or we can use the function above:
-    function_probability_output = read_model_in_and_use(output_filename,sample_proper_motions)
+    function_probability_output = read_model_in_and_use(output_filename,
+                                                        sample_proper_motions)
     print(function_probability_output)
+
+    # Let's plot it up
+    proper_motion_tofit = [item for item in zip(proper_motions[0],
+                                                proper_motions[1])]
+    full_prob_output = read_model_in_and_use(output_filename,
+                                             proper_motion_tofit)
+    plot_up(proper_motions,full_prob_output)
