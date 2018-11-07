@@ -143,7 +143,6 @@ if __name__ == "__main__":
     # Next, read in the catalog and fit membership model
     fitted_model, proper_motions = read_catalog_in_and_fit(input_filename, 
                                                            output_filename)
-
     # We can use the fitted_model directly:
     sample_proper_motions = [ [-12.5,-19],
                               [-3,-4],
