@@ -212,11 +212,13 @@ def produce_catalog(catalog_data,membership_probabilities,
     probs = [membership_probabilities[ID] for ID in source_ids_ordered]
 
     with open(output_catalog_filename,"w") as f:
-        f.write("# Gaia_DR2_ID        Gaia_G_mag       memb_prob              RA(deg)" +\
-                    "              RA_err(deg)              dec(deg)" +\
-                    "             dec_err(deg)         pm_RA(mas/yr)     "+\
-                    "pm_RA_err(mas/yr)        pm_dec(mas/yr)    pm_dec_err(mas/yr)\n")
-        formatter = "%-19s  %10s  %14.6e  %19s  %23.17e  %20s  %23e  %20s  %20s  %20s  %20s\n"
+        f.write("# Gaia_DR2_ID        Gaia_G_mag       memb_prob"+\
+                    "              RA(deg)              RA_err(deg)"+\
+                    "              dec(deg)             dec_err(deg)"+\
+                    "         pm_RA(mas/yr)     pm_RA_err(mas/yr)"+\
+                    "        pm_dec(mas/yr)    pm_dec_err(mas/yr)\n")
+        formatter = "%-19s  %10s  %14.6e  %19s  %23.17e  %20s  %23.17e  "+\
+            "%20s  %20s  %20s  %20s\n"
         for i in range(len(source_ids_ordered)):
             f.write(formatter % (source_ids_ordered[i], G_mag[i],
                                  probs[i], ra[i], ra_err[i]/(1000*3600), 
