@@ -38,7 +38,7 @@ import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture as GM
 
 
-def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.3,
+def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.,
                             initial_means=[[-12.5,-19], [-3,-4]],
                             random_state=546):
     """
@@ -108,14 +108,15 @@ def read_model_in_and_use(model_filename, catalog_data):
     pm_mask_calculating = (~np.isnan(catalog_data['pmra'])) &\
         (~np.isnan(catalog_data['pmdec']))
     data_to_calc = [item for item in zip(catalog_data['pmra'][pm_mask_calculating],
-                                        catalog_data['pmdec'][pm_mask_calculating])]
+                                         catalog_data['pmdec'][pm_mask_calculating])]
     prob = fitted_model.predict_proba(data_to_calc)
     prob_first_comp = [item[0] for item in prob] # Just the first component
-
+               
     # Now create a dictionary matching ID to membership probability
     prob_dict = {}
-    for i in range(len(catalog_data['source_id'][pm_mask_calculating])):
-        prob_dict[catalog_data['source_id'][i]] = prob_first_comp[i]
+    IDs_masked = catalog_data['source_id'][pm_mask_calculating]
+    for i in range(len(IDs_masked)):
+        prob_dict[IDs_masked[i]] = prob_first_comp[i]
 
     # And return the probability dict
     return prob_dict
@@ -211,15 +212,16 @@ def produce_catalog(catalog_data,membership_probabilities,
     probs = [membership_probabilities[ID] for ID in source_ids_ordered]
 
     with open(output_catalog_filename,"w") as f:
-        f.write("# Gaia_DR2_ID   Gaia_G_mag  memb_prob  RA    RA_err   dec  dec_err " +\
-                    "  pm_RA   pm_RA_err   pm_dec   pm_dec_err\n")
-        formatter = "%20s  %20s  %20s  %20s  %20s  %20s  %20s  %20s  %20s  %20s  %20s\n"
+        f.write("# Gaia_DR2_ID        Gaia_G_mag       memb_prob              RA(deg)" +\
+                    "              RA_err(deg)              dec(deg)" +\
+                    "             dec_err(deg)         pm_RA(mas/yr)     "+\
+                    "pm_RA_err(mas/yr)        pm_dec(mas/yr)    pm_dec_err(mas/yr)\n")
+        formatter = "%-19s  %10s  %14.6e  %19s  %23.17e  %20s  %23e  %20s  %20s  %20s  %20s\n"
         for i in range(len(source_ids_ordered)):
             f.write(formatter % (source_ids_ordered[i], G_mag[i],
-                                 probs[i], ra[i], ra_err[i], dec[i], dec_err[i],
-                                 pmra[i], pmra_err[i], pmdec[i], pmdec_err[i]))
-       
-    
+                                 probs[i], ra[i], ra_err[i]/(1000*3600), 
+                                 dec[i], dec_err[i]/(1000*3600), pmra[i], 
+                                 pmra_err[i], pmdec[i], pmdec_err[i]))
 
 
 if __name__ == "__main__":
