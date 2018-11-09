@@ -74,7 +74,10 @@ The code can be ran as-is as following to regenerate the membership catalog
 as published:
 
 ```
-python gaia_query.py foo.xml # Downloads a portion of the Gaia data archive
+# Download a portion of the Gaia data archive
+python gaia_query.py foo.xml 
+
+# Fit the model and outputs the fitted model, membership catalog, and some plots
 python pm_membership.py foo.xml gmm_fitted 19
 ```
 
