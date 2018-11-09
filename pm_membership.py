@@ -20,14 +20,19 @@ This code has some redunancies/unnecessary steps for a full end-to-end
 calculation, but these were included to provide e.g. examples of how 
 to read in the fitted model from a pickle file and use the contents.
 
-Usage: pm_membership.py  input_catalog_filename  output_pickle_filename
+Usage: pm_membership.py  input_catalog_filename  output_pickle_filename_prefix
+       mag_cutoff
 
      input_catalog_filename: the filename for the input catalog, assumed to
           be a VOTable from the Gaia data archive or formatted similarly
 
-     output_pickle_filename: the filename for the pickle file that will store
-          the fitted Gaussian mixture model for later use
+     output_pickle_filename_prefix: the prefix for the filename for the pickle 
+          file that will store the fitted Gaussian mixture model for later use
 
+     mag_cutoff: the magnitude cutoff, where the model fitting gets split. 
+          separate fits are made for objects brighter and dimmer (in Gaia G
+          magnitude) than this value.  To not split the fitting, use 
+          'None' or 'none'.
 """
 
 from __future__ import absolute_import, division, print_function
