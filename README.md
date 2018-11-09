@@ -130,7 +130,8 @@ should be the case for any M4-centered data set that is used for the fitting,
 but we cannot make any absolute guarantee on this.  Please always double
 check which component of the fit corresponds to the cluster membership
 probability if adapting the code for your own purposes.  If the `initial_means`
-or `random_state` arguments to the `read_catalog_in_and_fit()` function in
+or `random_state` arguments to the [`read_catalog_in_and_fit()`](https://github.com/joshuawallace/M4_pm_membership/blob/master/pm_membership.py#L46)
+function in
 pm_membership.py are altered, please take extra care on this front.  If you
 use this code to create a proper motion membership catalog for a cluster
 other than M4, you will probably need to change the value for `initial_means`
