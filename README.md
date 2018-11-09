@@ -91,11 +91,52 @@ code itself.
 
 ## Caveats
 
-Initialization
+* **Change in fit as a function of magnitude** - Since errors in the proper
+motion measurements increase with magnitude, and since the fraction of stars
+that are cluster members is a function of magnitude, different values for
+`mag_cutoff` (the third argument given to pm_membership.py) will produce
+different fits.  A more complete proper motion membership catalog 
+calculation would likely bin objects by magnitude and have a separate 
+mixture model fit for each magnitude bin (more than the maximum of two
+bins the code now provides for), but that is not implemented here.  
+Fits do different significantly by magnitude (see, e.g., the difference
+between the two fits in this repo, split over *G*=19.
 
-Sample size effects
+* **Change in fit depending on distance from cluster center** - Since
+membership probability is additionally dependent on distance from 
+cluster center---a given star near the center of the cluster is
+much more likely to be a cluster member than a field star, without
+knowing any other prior information, given the density of cluster
+stars in the area, with this probability decreasing with increasing 
+distance from the cluster center---how far from the cluster center
+one goes to choose objects to include in the fit also affects
+the fitted model.  We use objects within 30 arcminutes of the cluster
+center in the code in this repo. We also tried 6 and 60 arcminutes and
+found that the final fits did not change much between these three
+data sets.  A more complete proper motion membership catalog would
+perhaps bin objects into annuli centered on the cluster center
+and having a separate mixture model fit for each annulus,
+but that is not implemented here.
 
-magnitude effect
+
+
+* **Initialization** - A Gaussian mixture model is an unsupervised machine 
+learning model, meaning it finds structure in the data without providing 
+classification labels for the detected structure.  Labels must be provided
+afterwards.  In the setup as currently exists in this repo, it is the *first*
+component of the fitted model that corresponds to cluster membership 
+probability.  The initial means for the fitting have been set such that this
+should be the case for any M4-centered data set that is used for the fitting,
+but we cannot make any absolute guarantee on this.  Please always double
+check which component of the fit corresponds to the cluster membership
+probability if adapting the code for your own purposes.  If the `initial_means`
+or `random_state` arguments to the `read_catalog_in_and_fit()` function in
+pm_membership.py are altered, please take extra care on this front.  If you
+use this code to create a proper motion membership catalog for a cluster
+other than M4, you will probably need to change the value for `initial_means`
+if you want to have any level of certainty as to which component corresponds
+to the cluster membership probability.
+
 
 
 ## Use, Acknowledgment, and Attribution
