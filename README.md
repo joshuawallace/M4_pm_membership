@@ -33,24 +33,16 @@ of an
 object.  The pickles were generated using Python 2, but can be read in to 
 Python 3 with the `encoding='latin'` option to your `pickle.load()` call.
 
-<<<<<<< HEAD
-..* [gmm_fitted_maglessthan_19.0.pkl](gmm_fitted_maglessthan_19.0.pkl) -- the 
+    * [gmm_fitted_maglessthan_19.0.pkl](gmm_fitted_maglessthan_19.0.pkl) -- the 
 fitted model for objects with Gaia G magnitudes less (brighter) than 19
 
-..* [gmm_fitted_maggreaterthan_19.0.pkl](gmm_fitted_maggreaterthan_19.0.pkl) -- 
+    * [gmm_fitted_maggreaterthan_19.0.pkl](gmm_fitted_maggreaterthan_19.0.pkl) -- 
 the fitted model for objects with Gaia G magnitudes greater (dimmer) than 19
-=======
-    * gmm_fitted_maglessthan_19.0.pkl -- the fitted model for objects with Gaia G magnitudes 
-less (brighter) than 19
 
-    * gmm_fitted_maggreaterthan_19.0.pkl -- the fitted model for objects with Gaia G magnitudes 
-greater (dimmer) than 19
->>>>>>> 5146ea35a7ffc81ab9de776837d142785fe38d76
-
-* membership_catalog.txt -- the catalog in plain text.  Contains Gaia DR2 ID 
-numbers, our calculated membership probabilities, and some other information 
-(G magnitudes, RA, dec, proper motion values and errors on the latter three). 
-See header for column and unit information.
+* [membership_catalog.txt](membership_catalog.txt) -- the catalog in plain 
+text.  Contains Gaia DR2 ID numbers, our calculated membership probabilities, 
+and some other information (G magnitudes, RA, dec, proper motion values and 
+errors on the latter three). See header for column and unit information.
 
 ## How to Use
 
