@@ -38,7 +38,8 @@ import matplotlib.pyplot as plt
 from sklearn.mixture import GaussianMixture as GM
 
 
-def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.,
+def read_catalog_in_and_fit(input_filename, output_filename_prefix, 
+                            mag_cutoff=None,
                             initial_means=[[-12.5,-19], [-3,-4]],
                             random_state=546):
     """
@@ -46,10 +47,11 @@ def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.,
 
     input_filename - the input catalog, assume to be a VOTable and assumed
          to have similar format as the Gaia DR2 source catalog
-    output_filename - the name for the output pickle file, which will store
-         the fitted model
-    mag_cutoff - the dimmest (maximum) G-band magnitude for stars to use 
-         in the model fit
+    output_filename_prefix - the prefix of the name for the output pickle file, 
+         which will store the fitted model
+    mag_cutoff - the magnitude to split the model over.  Separate fits will
+         be made for objects brighter and dimmer than this magnitude.
+         A value of None will use all stars for a fit, no splitting
     initial_means - the initial guesses for the means of the two Gaussian
          components.  Random initializations (the default) lead to random
          assignments: sometimes the first component is what gets fit to 
@@ -69,60 +71,121 @@ def read_catalog_in_and_fit(input_filename, output_filename, mag_cutoff=19.,
     catalog_data = table.array
 
     # Set up the Gaussian mixture model
-    gm_model = GM(n_components=2,max_iter=300,means_init=initial_means,
-                  random_state=random_state)
+    if mag_cutoff is not None:
+        gm_model_bright = GM(n_components=2,max_iter=300,means_init=initial_means,
+                             random_state=random_state)
+        gm_model_dim = GM(n_components=2,max_iter=300,means_init=initial_means,
+                          random_state=random_state)
+    else:
+        gm_model = GM(n_components=2,max_iter=300,means_init=initial_means,
+                      random_state=random_state)
     
     # Mask out catalog entries without measured proper motions and dimmer
     # than the cutoff magnitude
-    pm_mask_fitting = (catalog_data['phot_g_mean_mag'] < mag_cutoff) & \
-        (~np.isnan(catalog_data['pmra'])) & (~np.isnan(catalog_data['pmdec']))
+    pm_mask_fitting = (~np.isnan(catalog_data['pmra'])) &\
+        (~np.isnan(catalog_data['pmdec']))
+    if mag_cutoff is not None:
+        pm_mask_fitting_bright = pm_mask_fitting &\
+            (catalog_data['phot_g_mean_mag'] < mag_cutoff)
+        pm_mask_fitting_dim = pm_mask_fitting &\
+            (catalog_data['phot_g_mean_mag'] >= mag_cutoff)
     
     # Extract the data to fit and fit it
-    data_to_fit = [item for item in zip(catalog_data['pmra'][pm_mask_fitting],
-                                        catalog_data['pmdec'][pm_mask_fitting])]
-    gm_model.fit(data_to_fit)
+    if mag_cutoff is not None:
+        data_to_fit_bright = [item for item in zip(catalog_data['pmra'][pm_mask_fitting_bright],
+                                                   catalog_data['pmdec'][pm_mask_fitting_bright])]
+        data_to_fit_dim = [item for item in zip(catalog_data['pmra'][pm_mask_fitting_dim],
+                                                   catalog_data['pmdec'][pm_mask_fitting_dim])] 
+        gm_model_bright.fit(data_to_fit_bright)
+        gm_model_dim.fit(data_to_fit_dim)
+    else:
+        data_to_fit = [item for item in zip(catalog_data['pmra'][pm_mask_fitting],
+                                            catalog_data['pmdec'][pm_mask_fitting])]
+        gm_model.fit(data_to_fit)
+
 
     # Dump the fitted model to a pickle file, and also return it
-    with open(output_filename,"wb") as f:
-        pickle.dump(gm_model,f)
-    return (gm_model, catalog_data)
+    if mag_cutoff is not None:
+        with open(output_filename_prefix + "_maglessthan_" +\
+                      str(mag_cutoff) + ".pkl","wb") as f:
+            pickle.dump(gm_model_bright,f)
+        with open(output_filename_prefix + "_maggreaterthan_" +\
+                      str(mag_cutoff) + ".pkl","wb") as f:
+            pickle.dump(gm_model_dim,f)
+        return ((gm_model_bright,gm_model_dim), catalog_data)
+    else:
+        with open(output_filename_prefix + ".pkl","wb") as f:
+            pickle.dump(gm_model,f)
+        return (gm_model, catalog_data)
 
 
-def read_model_in_and_use(model_filename, catalog_data):
+def read_model_in_and_use(model_filename_prefix, catalog_data, mag_cutoff=None):
     """
     Read the model in from the given pickle file and use it
 
-    model_filename - the name for the output pickle file, which stores
-         the fitted model
+    model_filename_prefix - the prefix for the name for the output 
+         pickle file, which stores the fitted model
     catalog_data - the read-in data for the objects, assumed to be in
          similar format as the Gaia DR2 data.  See the 
          read_catalog_in_and_fit() function for an example for how to
          read in the catalog
+    mag_cutoff - the magnitude the model was splitted over.  A value of 
+         None means all stars were used in a single fit, no splitting
     """
 
     # Read in the fitted model
-    with open(model_filename,"rb") as f:
-        fitted_model = pickle.load(f)
+    if mag_cutoff is not None:
+        with open(output_filename_prefix + "_maglessthan_" +\
+                      str(mag_cutoff) + ".pkl","rb") as f:
+            fitted_model_bright = pickle.load(f)
+        with open(output_filename_prefix + "_maggreaterthan_" +\
+                      str(mag_cutoff) + ".pkl","rb") as f:
+            fitted_model_dim = pickle.load(f)
+    else:
+        with open(model_filename_prefix + ".pkl","rb") as f:
+            fitted_model = pickle.load(f)
     
     # From the catalog data, get the proper motions and calculate probability
+    # and create a dictionary matching ID to membership probability
+    prob_dict = {}
     pm_mask_calculating = (~np.isnan(catalog_data['pmra'])) &\
         (~np.isnan(catalog_data['pmdec']))
-    data_to_calc = [item for item in zip(catalog_data['pmra'][pm_mask_calculating],
-                                         catalog_data['pmdec'][pm_mask_calculating])]
-    prob = fitted_model.predict_proba(data_to_calc)
-    prob_first_comp = [item[0] for item in prob] # Just the first component
-               
-    # Now create a dictionary matching ID to membership probability
-    prob_dict = {}
-    IDs_masked = catalog_data['source_id'][pm_mask_calculating]
-    for i in range(len(IDs_masked)):
-        prob_dict[IDs_masked[i]] = prob_first_comp[i]
+    if mag_cutoff is not None:
+        bright_mask = pm_mask_calculating & (catalog_data['phot_g_mean_mag'] < mag_cutoff)
+        dim_mask = pm_mask_calculating & (catalog_data['phot_g_mean_mag'] >= mag_cutoff)
 
+        # First, the bright
+        data_to_calc_bright = [item for item in zip(catalog_data['pmra'][bright_mask],
+                                                    catalog_data['pmdec'][bright_mask])]
+        prob_bright = fitted_model_bright.predict_proba(data_to_calc_bright)
+        prob_bright_first_comp = [item[0] for item in prob_bright] # Just the first component
+        IDs_masked_bright = catalog_data['source_id'][bright_mask]
+        for i in range(len(IDs_masked_bright)):
+            prob_dict[IDs_masked_bright[i]] = prob_bright_first_comp[i]
+
+        # Now, the dim
+        data_to_calc_dim = [item for item in zip(catalog_data['pmra'][dim_mask],
+                                                    catalog_data['pmdec'][dim_mask])]
+        prob_dim = fitted_model_dim.predict_proba(data_to_calc_dim)
+        prob_dim_first_comp = [item[0] for item in prob_dim] # Just the first component
+        IDs_masked_dim = catalog_data['source_id'][dim_mask]
+        for i in range(len(IDs_masked_dim)):
+            prob_dict[IDs_masked_dim[i]] = prob_dim_first_comp[i]
+    else:
+        data_to_calc = [item for item in zip(catalog_data['pmra'][pm_mask_calculating],
+                                             catalog_data['pmdec'][pm_mask_calculating])]
+        prob = fitted_model.predict_proba(data_to_calc)
+        prob_first_comp = [item[0] for item in prob] # Just the first component
+        IDs_masked = catalog_data['source_id'][pm_mask_calculating]
+        for i in range(len(IDs_masked)):
+            prob_dict[IDs_masked[i]] = prob_first_comp[i]
+               
     # And return the probability dict
     return prob_dict
 
 
 def plot_up(catalog_data,membership_probabilities,
+            mag_cutoff=None,
             plot_filename="gmm_fit.png"):
     """
     Show the membership probabilities graphically
@@ -133,45 +196,101 @@ def plot_up(catalog_data,membership_probabilities,
          read in the catalog
     membership_probabilities - a dictionary relating membership 
          probabilities to source IDs
+    mag_cutoff - the magnitude the model was splitted over.  A value of 
+         None means all stars were used in a single fit, no splitting,
+         or to plot things up in one plot regardless of whether there
+         was actually a mag_cutoff
     plot_filename - name of the file for the output plot
-    """
-
-    """
-    # Prepare the data
-    pmra = []
-    pmdec = []
-    probs = []
-    for i in range(len(catalog_data['source_id'])):
-        if catalog_data['source_id'][i] in membership_probabilities.keys():
-            pmra.append(catalog_data['pmra'][i])
-            pmdec.append(catalog_data['pmdec'][i])
-            probs.append(membership_probabilities[catalog_data['source_id'][i]])
     """
 
     # Extract all the relevant information, assuming that the keys to 
     # membership_probabilities dictionary is the most complete list of what
-    # we want to plot up
-    pmra = catalog_data['pmra'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    pmdec = catalog_data['pmdec'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    source_ids_ordered = catalog_data['source_id'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    probs = [membership_probabilities[ID] for ID in source_ids_ordered]
+    # we want to plot up, and then plot it up
+    if mag_cutoff is None:
+        pmra = catalog_data['pmra'][np.isin(catalog_data['source_id'],
+                                            membership_probabilities.keys())]
+        pmdec = catalog_data['pmdec'][np.isin(catalog_data['source_id'],
+                                            membership_probabilities.keys())]
+        source_ids_ordered = catalog_data['source_id'][np.isin(catalog_data['source_id'],
+                                            membership_probabilities.keys())]
+        probs = [membership_probabilities[ID] for ID in source_ids_ordered]
 
-    
-    # Plot up the points and make colorbar
-    sc = plt.scatter(pmra,pmdec,c=probs,cmap='brg',s=1,alpha=.6)
-    cbar = plt.colorbar(sc,label='Star cluster membership probability')
 
-    # Add labels and save
-    plt.xlabel("Proper motion in RA (mas/yr)")
-    plt.ylabel("Proper motion in dec (mas/yr)")
-    plt.xlim(-22,10)
-    plt.ylim(-27,5)
-    plt.tight_layout()
-    plt.savefig(plot_filename,dpi=300)
-    plt.close()
+        # Plot up the points and make colorbar
+        sc = plt.scatter(pmra,pmdec,c=probs,cmap='brg',s=1,alpha=.5)
+        cbar = plt.colorbar(sc,label='Star cluster membership probability')
+
+        # Add labels and save
+        plt.xlabel("Proper motion in RA (mas/yr)")
+        plt.ylabel("Proper motion in dec (mas/yr)")
+        plt.xlim(-22,10)
+        plt.ylim(-27,5)
+        plt.tight_layout()
+        plt.savefig(plot_filename,dpi=300)
+        plt.close()
+
+    else: # Split up plots by the magnitude cutoff
+        IDs_bright = catalog_data['source_id'][catalog_data['phot_g_mean_mag'] < mag_cutoff]
+        IDs_dim = catalog_data['source_id'][catalog_data['phot_g_mean_mag'] >= mag_cutoff]
+
+        pmra_bright = catalog_data['pmra'][(np.isin(catalog_data['source_id'],
+                                                   membership_probabilities.keys())) &
+                                           (np.isin(catalog_data['source_id'],
+                                                   IDs_bright))]
+        pmra_dim = catalog_data['pmra'][(np.isin(catalog_data['source_id'],
+                                                   membership_probabilities.keys())) &
+                                           (np.isin(catalog_data['source_id'],
+                                                   IDs_dim))]
+        pmdec_bright = catalog_data['pmdec'][(np.isin(catalog_data['source_id'],
+                                                   membership_probabilities.keys())) &
+                                           (np.isin(catalog_data['source_id'],
+                                                   IDs_bright))]
+        pmdec_dim = catalog_data['pmdec'][(np.isin(catalog_data['source_id'],
+                                                   membership_probabilities.keys())) &
+                                           (np.isin(catalog_data['source_id'],
+                                                   IDs_dim))]
+        source_ids_bright_ordered = catalog_data['source_id'][(np.isin(catalog_data['source_id'],
+                                                    membership_probabilities.keys())) &
+                                                              (np.isin(catalog_data['source_id'],
+                                                                       IDs_bright))]
+        source_ids_dim_ordered = catalog_data['source_id'][(np.isin(catalog_data['source_id'],
+                                                    membership_probabilities.keys())) &
+                                                              (np.isin(catalog_data['source_id'],
+                                                                       IDs_dim))]
+        probs_bright = [membership_probabilities[ID] for ID in source_ids_bright_ordered]
+        probs_dim = [membership_probabilities[ID] for ID in source_ids_dim_ordered]
+
+        ## Bright
+        # Plot up the points and make colorbar
+        sc_bright = plt.scatter(pmra_bright,pmdec_bright,c=probs_bright,cmap='brg',s=1,alpha=.5)
+        cbar_bright = plt.colorbar(sc_bright,label='Star cluster membership probability')
+
+        # Add labels and save
+        plt.xlabel("Proper motion in RA (mas/yr)")
+        plt.ylabel("Proper motion in dec (mas/yr)")
+        plt.xlim(-22,10)
+        plt.ylim(-27,5)
+        plt.tight_layout()
+        last_period = plot_filename.rfind('.')
+        bright_filename = plot_filename[:last_period] + "_brighter" + plot_filename[last_period:]
+        plt.savefig(bright_filename,dpi=300)
+        plt.close()
+
+        ## Dim
+        # Plot up the points and make colorbar
+        sc_dim = plt.scatter(pmra_dim,pmdec_dim,c=probs_dim,cmap='brg',s=1,alpha=.5)
+        cbar_dim = plt.colorbar(sc_dim,label='Star cluster membership probability')
+
+        # Add labels and save
+        plt.xlabel("Proper motion in RA (mas/yr)")
+        plt.ylabel("Proper motion in dec (mas/yr)")
+        plt.xlim(-22,10)
+        plt.ylim(-27,5)
+        plt.tight_layout()
+        last_period = plot_filename.rfind('.')
+        dim_filename = plot_filename[:last_period] + "_dimmer" + plot_filename[last_period:]
+        plt.savefig(dim_filename,dpi=300)
+        plt.close()
     
 
 def produce_catalog(catalog_data,membership_probabilities,
@@ -186,9 +305,9 @@ def produce_catalog(catalog_data,membership_probabilities,
          read in the catalog
     membership_probabilities - a dictionary relating membership 
          probabilities to source IDs
-
-
     """
+
+    # Get all the information together
     source_ids_ordered = catalog_data['source_id'][np.isin(catalog_data['source_id'],
                                         membership_probabilities.keys())]
     G_mag = catalog_data['phot_g_mean_mag'][np.isin(catalog_data['source_id'],
@@ -211,6 +330,7 @@ def produce_catalog(catalog_data,membership_probabilities,
                                         membership_probabilities.keys())]
     probs = [membership_probabilities[ID] for ID in source_ids_ordered]
 
+    # Write it out
     with open(output_catalog_filename,"w") as f:
         f.write("# Gaia_DR2_ID        Gaia_G_mag       memb_prob"+\
                     "              RA(deg)              RA_err(deg)"+\
@@ -228,34 +348,42 @@ def produce_catalog(catalog_data,membership_probabilities,
 
 if __name__ == "__main__":
     # First, read in the desired input and output filenames
-    if len(sys.argv) != 3:
-        print ("Needed command line arguments: input_catalog_filename " +\
-                   "output_pickle_filename")
+    if len(sys.argv) != 4:
+        print ("Needed command line arguments: input_catalog_filename   " +\
+                   "output_pickle_filename_prefix   mag_cutoff")
         raise RuntimeError("Wrong number of command line arguments.  Got " +\
-                               str(len(sys.argv)-1) + " instead of 2")
+                               str(len(sys.argv)-1) + " instead of 3")
 
     input_filename = sys.argv[1]
-    output_filename = sys.argv[2]
-
+    output_filename_prefix = sys.argv[2]
+    if sys.argv[3] not in ['None', 'none']:
+        mag_cutoff = float(sys.argv[3])
+    else:
+        mag_cutoff = None
 
     # Next, read in the catalog and fit membership model
     fitted_model, catalog_data = read_catalog_in_and_fit(input_filename, 
-                                                         output_filename)
+                                                         output_filename_prefix,
+                                                         mag_cutoff=mag_cutoff)
+
     # We can use the fitted_model directly:
     sample_proper_motions = [ [-12.5,-19],
                               [-3,-4],
                               [-13,-20],
                               [-10,-20],
                               [100,100]]
-    probability_output = fitted_model.predict_proba(sample_proper_motions)
+    if isinstance(fitted_model, tuple):
+        probability_output = fitted_model[0].predict_proba(sample_proper_motions)
+    else:
+        probability_output = fitted_model.predict_proba(sample_proper_motions)
     print([item[0] for item in probability_output]) # Just the first component
 
     # Or we can use the function above:
-    full_prob_output = read_model_in_and_use(output_filename,
-                                             catalog_data)
+    full_prob_output = read_model_in_and_use(output_filename_prefix,
+                                             catalog_data,mag_cutoff=mag_cutoff)
 
     # Let's plot it up
-    plot_up(catalog_data,full_prob_output)
+    plot_up(catalog_data,full_prob_output,mag_cutoff=mag_cutoff)
 
     # And now write out the plain text catalog
     produce_catalog(catalog_data,full_prob_output)
