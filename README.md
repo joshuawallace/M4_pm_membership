@@ -91,6 +91,17 @@ code itself.
 
 ## Caveats
 
+* **Completeness** - In crowded regions such as globular clusters, the 
+completeness of the Gaia DR2 source catalog does not match that obtained 
+in other regions with a similar number of observations.  Near the cluster 
+center, completeness of source detection is much less that of the survey
+as a whole, reaching only ~50% for objects as bright as *G*=16.
+For more details, please check out 
+["Gaia Data Release 2: Catalogue Validation" (Arenou et al. 2018)](https://arxiv.org/pdf/1804.09375.pdf), Section 3.
+In particular, Figure 6 shows completeness for M4 (NGC 6121), and Table B.1 
+provides a quantification of this figure.
+
+
 * **Change in fit as a function of magnitude** - Since errors in the proper
 motion measurements increase with magnitude, and since the fraction of stars
 that are cluster members is a function of magnitude, different values for
@@ -122,8 +133,8 @@ but that is not implemented here.
 
 * **Initialization** - A Gaussian mixture model is an unsupervised machine 
 learning model, meaning it finds structure in the data without providing 
-classification labels for the detected structure.  Labels must be provided
-afterwards.  In the setup as currently exists in this repo, it is the *first*
+classification labels for the detected structure.  Labels must be determined
+afterward.  In the setup as currently exists in this repo, it is the *first*
 component of the fitted model that corresponds to cluster membership 
 probability.  The initial means for the fitting have been set such that this
 should be the case for any M4-centered data set that is used for the fitting,
@@ -149,3 +160,4 @@ The official publication for this catalog is (fill in when published).
 This repo also has a DOI, ().
 Any use of this catalog or the associated code should cite the Wallace et al. article, 
 and any use of the data or code in the repo should also cite the repo DOI.
+ LocalWords:  md gmm latin proba Catalogue
