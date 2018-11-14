@@ -19,7 +19,8 @@ The following Python packages are used by the main code (pm_membership.py):
 [scikit-learn](http://scikit-learn.org/stable/).
 
 Additionally, the code to query the *Gaia* archive (gaia_query.py)
-uses astropy and [astroquery](https://astroquery.readthedocs.io/en/latest/).
+uses [astropy] (http://www.astropy.org/)
+ and [astroquery](https://astroquery.readthedocs.io/en/latest/).
 
 ## Repo Contents
 
@@ -57,7 +58,7 @@ in this catalog file.**
 
 ## How to Use
 
-**If all you want is the catalog published as-is,**
+**If all you want is the published catalog as-is,**
 [membership_catalog.txt](membership_catalog.txt) has what you want in plain 
 text, and you don't need to worry about anything else in this repo.
 
@@ -167,6 +168,6 @@ The contents of this repo are distributed under the BSD 3-Clause License
 
 The official publication for this catalog is (fill in when published).  
 This repo also has a DOI, ().
-Any use of this catalog or the associated code should cite the Wallace et al. article, 
-and any use of the data or code in the repo should also cite the repo DOI.
+**Any use of this catalog or the associated code should cite the Wallace 2018 article, 
+and any use of the data or code in the repo should also cite the repo DOI.**
  LocalWords:  md gmm latin proba Catalogue
