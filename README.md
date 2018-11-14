@@ -170,4 +170,10 @@ The official publication for this catalog is (fill in when published).
 This repo also has a DOI, ().
 **Any use of this catalog or the associated code should cite the Wallace 2018 article, 
 and any use of the data or code in the repo should also cite the repo DOI.**
+
+
+
+
+[![DOI](https://zenodo.org/badge/154380587.svg)](https://zenodo.org/badge/latestdoi/154380587)
+
  LocalWords:  md gmm latin proba Catalogue
