@@ -1,3 +1,6 @@
+[![DOI](https://zenodo.org/badge/154380587.svg)](https://zenodo.org/badge/latestdoi/154380587)
+
+
 # M4 (NGC 6121) Proper Motion Membership Catalog
 
 This repository contains the M4 membership catalog produced by () from *Gaia* DR2 proper 
@@ -174,6 +177,3 @@ and any use of the data or code in the repo should also cite the repo DOI.**
 
 
 
-[![DOI](https://zenodo.org/badge/154380587.svg)](https://zenodo.org/badge/latestdoi/154380587)
-
- LocalWords:  md gmm latin proba Catalogue
