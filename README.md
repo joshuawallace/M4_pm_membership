@@ -51,7 +51,9 @@ the fitted model for objects with Gaia *G* magnitudes greater (dimmer) than 19
 * [membership_catalog.txt](membership_catalog.txt) -- the catalog in plain 
 text.  Contains Gaia DR2 ID numbers, our calculated membership probabilities, 
 and some other information (*G* magnitudes, RA, dec, proper motion values and 
-errors on the latter three). See header for column and unit information.
+errors on the latter three). See header for column and unit information. 
+**Please note that only objects brighter than *G*=19 are currently included
+in this catalog file.**
 
 ## How to Use
 
@@ -115,8 +117,10 @@ different fits.  A more complete proper motion membership catalog
 calculation would likely bin objects by magnitude and have a separate 
 mixture model fit for each magnitude bin (more than the maximum of two
 bins the code now provides for), but that is not implemented here.  
-Fits do different significantly by magnitude (see, e.g., the difference
-between the two fits in this repo, split over *G*=19.
+This change in fit as a function of magnitude is the primary reason
+that the current catalog was chosen to cut off at *G*=19, as the 
+fainter objects require some more care and consideration than the catalog
+currently offers.
 
 * **Change in fit depending on distance from cluster center** - Since
 membership probability is additionally dependent on distance from 
