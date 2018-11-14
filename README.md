@@ -5,6 +5,11 @@ motion measurements, as well as the code used to create the catalog.  The conten
 are distributed under the BSD 3-Clause License (see [LICENSE](LICENSE.md) 
 file for more information).
 
+I would like to acknowledge the assistance of my academic advisors, 
+Joel Hartman and Gaspar Bakos, as well as significant advice from 
+[Waqas Bhatti](https://github.com/waqasbhatti).
+
+
 ## Dependencies
 
 The following Python packages are used by the main code (pm_membership.py):
