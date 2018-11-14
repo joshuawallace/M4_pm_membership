@@ -170,7 +170,8 @@ The contents of this repo are distributed under the BSD 3-Clause License
 (see [LICENSE](LICENSE.md) file for more information).
 
 The official publication for this catalog is (fill in when published).  
-This repo also has a DOI, ().
+This repo also has a DOI, [10.5281/zenodo.1488302](https://zenodo.org/record/1488302#.W-yVpJy1thE) 
+for the current version.
 **Any use of this catalog or the associated code should cite the Wallace 2018 article, 
 and any use of the data or code in the repo should also cite the repo DOI.**
 
