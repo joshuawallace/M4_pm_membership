@@ -299,6 +299,7 @@ def plot_up(catalog_data,membership_probabilities,
     
 
 def produce_catalog(catalog_data,membership_probabilities,
+                    mag_cutoff=None,
                     output_catalog_filename="membership_catalog.txt"):
     """
     After calculating the probability memberships, write the 
@@ -310,31 +311,69 @@ def produce_catalog(catalog_data,membership_probabilities,
          read in the catalog
     membership_probabilities - a dictionary relating membership 
          probabilities to source IDs
+    mag_cutoff - the faintest magnitude to be included in the final
+         membership catalog. As implemented here, it is intended to 
+         be used in conjunction with the mag_cutoff values used in
+         the other functions.  No sources with a magnitude fainter
+         than this value will be included in the final catalog.
     """
 
     # Get all the information together
-    source_ids_ordered = catalog_data['source_id'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    G_mag = catalog_data['phot_g_mean_mag'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    ra = catalog_data['ra'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    dec = catalog_data['dec'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    ra_err = catalog_data['ra_error'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    dec_err = catalog_data['dec_error'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    pmra = catalog_data['pmra'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    pmdec = catalog_data['pmdec'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    pmra_err = catalog_data['pmra_error'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    pmdec_err = catalog_data['pmdec_error'][np.isin(catalog_data['source_id'],
-                                        membership_probabilities.keys())]
-    probs = [membership_probabilities[ID] for ID in source_ids_ordered]
 
+    if mag_cutoff is None:
+        G_mag = catalog_data['phot_g_mean_mag'][np.isin(catalog_data['source_id'],
+                                                        membership_probabilities.keys())]
+        source_ids_ordered = catalog_data['source_id'][np.isin(catalog_data['source_id'],
+                                                               membership_probabilities.keys())]
+        ra = catalog_data['ra'][np.isin(catalog_data['source_id'],
+                                        membership_probabilities.keys())]
+        dec = catalog_data['dec'][np.isin(catalog_data['source_id'],
+                                          membership_probabilities.keys())]
+        ra_err = catalog_data['ra_error'][np.isin(catalog_data['source_id'],
+                                                  membership_probabilities.keys())]
+        dec_err = catalog_data['dec_error'][np.isin(catalog_data['source_id'],
+                                                    membership_probabilities.keys())]
+        pmra = catalog_data['pmra'][np.isin(catalog_data['source_id'],
+                                            membership_probabilities.keys())]
+        pmdec = catalog_data['pmdec'][np.isin(catalog_data['source_id'],
+                                              membership_probabilities.keys())]
+        pmra_err = catalog_data['pmra_error'][np.isin(catalog_data['source_id'],
+                                                      membership_probabilities.keys())]
+        pmdec_err = catalog_data['pmdec_error'][np.isin(catalog_data['source_id'],
+                                                        membership_probabilities.keys())]
+    else:
+        G_mag = catalog_data['phot_g_mean_mag'][(np.isin(catalog_data['source_id'],
+                                                        membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        source_ids_ordered = catalog_data['source_id'][(np.isin(catalog_data['source_id'],
+                                                               membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        ra = catalog_data['ra'][(np.isin(catalog_data['source_id'],
+                                        membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        dec = catalog_data['dec'][(np.isin(catalog_data['source_id'],
+                                          membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        ra_err = catalog_data['ra_error'][(np.isin(catalog_data['source_id'],
+                                                  membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        dec_err = catalog_data['dec_error'][(np.isin(catalog_data['source_id'],
+                                                    membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        pmra = catalog_data['pmra'][(np.isin(catalog_data['source_id'],
+                                            membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        pmdec = catalog_data['pmdec'][(np.isin(catalog_data['source_id'],
+                                              membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        pmra_err = catalog_data['pmra_error'][(np.isin(catalog_data['source_id'],
+                                                      membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+        pmdec_err = catalog_data['pmdec_error'][(np.isin(catalog_data['source_id'],
+                                                        membership_probabilities.keys())) &\
+                                                            (catalog_data['phot_g_mean_mag'] < mag_cutoff)]
+    probs = [membership_probabilities[ID] for ID in source_ids_ordered]
+        
     # Write it out
     with open(output_catalog_filename,"w") as f:
         f.write("# Gaia_DR2_ID        Gaia_G_mag       memb_prob"+\
@@ -391,4 +430,4 @@ if __name__ == "__main__":
     plot_up(catalog_data,full_prob_output,mag_cutoff=mag_cutoff)
 
     # And now write out the plain text catalog
-    produce_catalog(catalog_data,full_prob_output)
+    produce_catalog(catalog_data,full_prob_output,mag_cutoff=mag_cutoff)
