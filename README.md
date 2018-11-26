@@ -3,7 +3,9 @@
 
 # M4 (NGC 6121) Proper Motion Membership Catalog
 
-This repository contains the M4 membership catalog produced by () from *Gaia* DR2 proper 
+This repository contains the M4 membership catalog produced by 
+[Wallace 2018](http://iopscience.iop.org/article/10.3847/2515-5172/aaf1a2/meta) 
+from *Gaia* DR2 proper 
 motion measurements, as well as the code used to create the catalog.  The contents of this repo 
 are distributed under the BSD 3-Clause License (see [LICENSE](LICENSE.md) 
 file for more information).
@@ -169,12 +171,32 @@ to the cluster membership probability.
 The contents of this repo are distributed under the BSD 3-Clause License 
 (see [LICENSE](LICENSE.md) file for more information).
 
-The official publication for this catalog is (fill in when published).  
-This repo also has a DOI, [10.5281/zenodo.1488302](https://zenodo.org/record/1488302#.W-yVpJy1thE) 
-for the current version.
-**Any use of this catalog or the associated code should cite the Wallace 2018 article, 
+The official publication for this catalog is 
+["M4 Membership Catalog from *Gaia* Proper Motions"](http://iopscience.iop.org/article/10.3847/2515-5172/aaf1a2/meta),
+authored by Joshua Wallace in 2018 and published in *Research Notes of the American 
+Astronomical Society*.  
+This repo also has a DOI at Zenodo.  The following Zenodo link
+[10.5281/zenodo.1488301](https://doi.org/10.5281/zenodo.1488301) 
+should resolve to the most recent version, while this link 
+[10.5281/zenodo.1488302](https://zenodo.org/record/1488302#.W_w6g5y1thE) will resolve 
+to version 1.0, the current officially released version.
+**Any use of this catalog or the associated code should cite the Wallace 2018 
+article (Bibtex entry below), 
 and any use of the data or code in the repo should also cite the repo DOI.**
 
 
 
-
+Bibtex entry for Wallace 2018 article:
+```
+@article{2515-5172-2-4-213,
+  author={Joshua J. Wallace},
+  title={M4 Membership Catalog from Gaia Proper Motions},
+  journal={Research Notes of the AAS},
+  volume={2},
+  number={4},
+  pages={213},
+  url={http://stacks.iop.org/2515-5172/2/i=4/a=213},
+  year={2018},
+  abstract={}
+}
+```
