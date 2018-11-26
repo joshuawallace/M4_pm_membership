@@ -186,7 +186,7 @@ and any use of the data or code in the repo should also cite the repo DOI.**
 
 
 
-Bibtex entry for Wallace 2018 article:
+Bibtex entry for the Wallace 2018 article:
 ```
 @article{2515-5172-2-4-213,
   author={Joshua J. Wallace},
